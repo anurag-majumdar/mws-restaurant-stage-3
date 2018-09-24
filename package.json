@@ -1,21 +1,21 @@
 {
-  "name": "mws-restaurant-stage-2-client",
+  "name": "mws-restaurant-stage-3",
   "version": "1.0.0",
-  "description": "Client side application for Restaurant Reviews App Stage 2 of Mobile Web Specialist Nanodegree",
+  "description": "Client side application for Restaurant Reviews App Stage 3 of Mobile Web Specialist Nanodegree",
   "main": "gulpfile.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/anurag-majumdar/mws-restaurant-stage-2-client.git"
+    "url": "git+https://github.com/anurag-majumdar/mws-restaurant-stage-3.git"
   },
   "author": "Anurag Majumdar",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/anurag-majumdar/mws-restaurant-stage-2-client/issues"
+    "url": "https://github.com/anurag-majumdar/mws-restaurant-stage-3/issues"
   },
-  "homepage": "https://github.com/anurag-majumdar/mws-restaurant-stage-2-client#readme",
+  "homepage": "https://github.com/anurag-majumdar/mws-restaurant-stage-3#readme",
   "devDependencies": {
     "babel-core": "^6.26.3",
     "babel-preset-env": "^1.7.0",
