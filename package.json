@@ -1,0 +1,44 @@
+{
+  "name": "mws-restaurant-stage-2-client",
+  "version": "1.0.0",
+  "description": "Client side application for Restaurant Reviews App Stage 2 of Mobile Web Specialist Nanodegree",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anurag-majumdar/mws-restaurant-stage-2-client.git"
+  },
+  "author": "Anurag Majumdar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anurag-majumdar/mws-restaurant-stage-2-client/issues"
+  },
+  "homepage": "https://github.com/anurag-majumdar/mws-restaurant-stage-2-client#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babelify": "^8.0.0",
+    "browserify": "^16.2.2",
+    "connect-gzip-static": "^2.1.1",
+    "gulp": "^3.9.1",
+    "gulp-autoprefixer": "^5.0.0",
+    "gulp-clean": "^0.4.0",
+    "gulp-clean-css": "^3.9.4",
+    "gulp-connect": "^5.5.0",
+    "gulp-gzip": "^1.4.2",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-minify-inline": "^1.0.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-sequence": "^1.0.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "gulp-uglify": "^3.0.0",
+    "gulp-webp": "^3.0.0",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0"
+  },
+  "dependencies": {
+    "idb": "^2.1.3"
+  }
+}
