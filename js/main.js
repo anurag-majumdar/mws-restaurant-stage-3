@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initMap(); // added
   fetchNeighborhoods();
   fetchCuisines();
-  registerServiceWorker(); // Register service worker
+  // registerServiceWorker(); // Register service worker
 
   const neighborhoodsSelect = document.getElementById('neighborhoods-select');
   neighborhoodsSelect.addEventListener('change', updateRestaurants);

@@ -22,6 +22,8 @@ class DBHelper {
       switch (upgradeDb.oldVersion) {
         case 0:
           upgradeDb.createObjectStore('restaurants');
+        case 1:
+          upgradeDb.createObjectStore('reviews');
       }
     });
   }
@@ -79,6 +81,47 @@ class DBHelper {
         const errorMessage = (`Request failed. Error message: ${error}`);
         callback(errorMessage, null);
       });
+  }
+
+  /**
+   * Fetch reviews from reviews db.
+   */
+  static getReviewsByRestaurantFromDb(dbPromise, restaurantId) {
+    return dbPromise.then(function (db) {
+      if (!db) return;
+      let tx = db.transaction('reviews');
+      let restaurantsStore = tx.objectStore('reviews');
+      return restaurantsStore.get(restaurantId);
+    });
+  }
+
+  /**
+   * Update reviews to reviews db.
+   */
+  static updateReviewsByRestaurantInDb(dbPromise, restaurantId, reviews) {
+    return dbPromise.then(function (db) {
+      if (!db) return;
+      let tx = db.transaction('reviews', 'readwrite');
+      let restaurantsStore = tx.objectStore('reviews');
+      restaurantsStore.put(reviews, restaurantId);
+      tx.complete;
+    });
+  }
+
+  /**
+   * Fetch all reviews of a particular restaurant.
+   */
+  static fetchRestaurantReviewsById(restaurantId) {
+    const url = `http://localhost:1337/reviews/?restaurant_id=${restaurantId}`;
+    return fetch(url)
+      .then(response => response.json())
+      .catch(error => {
+        console.log(`Some error occurred while fetching restaurant reviews by ID: ${error}`);
+      });
+  }
+
+  static postReview(review) {
+
   }
 
   /**
@@ -211,12 +254,11 @@ class DBHelper {
    * Map marker for a restaurant.
    */
   static mapMarkerForRestaurant(restaurant, map) {
-    const marker = new L.marker([restaurant.latlng.lat, restaurant.latlng.lng],
-      {
-        title: restaurant.name,
-        alt: restaurant.name,
-        url: DBHelper.urlForRestaurant(restaurant)
-      })
+    const marker = new L.marker([restaurant.latlng.lat, restaurant.latlng.lng], {
+      title: restaurant.name,
+      alt: restaurant.name,
+      url: DBHelper.urlForRestaurant(restaurant)
+    })
     marker.addTo(newMap);
     return marker;
   }

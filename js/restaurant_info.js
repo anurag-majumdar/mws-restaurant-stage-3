@@ -5,6 +5,12 @@ import DBHelper from './dbhelper';
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initMap();
+  const reviewFormRating = document.querySelector('.review-form-rating');
+  const btnSubmitReview = document.querySelector('.btn-submit-review');
+
+  reviewFormRating.addEventListener('change', validateRating);
+  reviewFormRating.addEventListener('keyup', validateRating);
+  btnSubmitReview.addEventListener('click', addReview);
 });
 
 /**
@@ -119,28 +125,37 @@ const fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hour
 
     hours.appendChild(row);
   }
-}
+};
 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+const fillReviewsHTML = () => {
   const container = document.getElementById('reviews-container');
   const title = document.createElement('h2');
   title.innerHTML = 'Reviews';
-  container.appendChild(title);
+  container.insertAdjacentElement('afterbegin', title);
 
-  if (!reviews) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
-  container.appendChild(ul);
+  const reviewForm = document.querySelector('.review-input');
+  const restaurantId = self.restaurant.id;
+  DBHelper.fetchRestaurantReviewsById(restaurantId)
+    .then(reviews => {
+      if (!reviews || (reviews && reviews.length === 0)) {
+        const noReviews = document.createElement('p');
+        noReviews.innerHTML = 'No reviews yet!';
+        container.insertBefore(noReviews, reviewForm);
+        return;
+      }
+      const ul = document.getElementById('reviews-list');
+      reviews.forEach(review => {
+        ul.appendChild(createReviewHTML(review));
+      });
+    })
+    .catch(_ => {
+      const noReviews = document.createElement('p');
+      noReviews.innerHTML = 'No reviews yet!';
+      container.insertBefore(noReviews, reviewForm);
+    });
 }
 
 /**
@@ -149,23 +164,59 @@ const fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 const createReviewHTML = (review) => {
   const li = document.createElement('li');
   const name = document.createElement('p');
+  name.className = 'review-name';
   name.innerHTML = review.name;
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.className = 'review-date';
+  const updatedCommentDate = new Date(review.updatedAt);
+  date.innerHTML = updatedCommentDate.toLocaleDateString();
   li.appendChild(date);
 
   const rating = document.createElement('p');
+  rating.className = 'review-rating';
   rating.innerHTML = `Rating: ${review.rating}`;
   li.appendChild(rating);
 
   const comments = document.createElement('p');
+  comments.className = 'review-comments';
   comments.innerHTML = review.comments;
   li.appendChild(comments);
 
   return li;
 }
+
+/**
+ * Validate rating entered by user.
+ */
+const validateRating = (event) => {
+  const rating = event.target.value;
+  if (rating < 0) {
+    event.target.value = 1;
+  } else if (rating > 5) {
+    event.target.value = 5;
+  }
+};
+
+/**
+ * Add review entered by user.
+ */
+const addReview = () => {
+  const name = document.querySelector('.review-form-name');
+  const rating = document.querySelector('.review-form-rating');
+  const comments = document.querySelector('.review-form-comments');
+
+  const review = {
+    "restaurant_id": self.restaurant.id,
+    "name": name.value,
+    "rating": rating.value,
+    "comments": comments.textContent
+  };
+
+  DBHelper.postReview(review);
+
+};
 
 /**
  * Add restaurant name to the breadcrumb navigation menu
