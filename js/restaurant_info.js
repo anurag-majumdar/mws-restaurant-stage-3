@@ -1,4 +1,8 @@
-import DBHelper from './dbhelper';
+import {
+  DBHelper,
+  Toast,
+  reviewsToBeSynced
+} from './dbhelper';
 
 /**
  * Initialize map as soon as the page is loaded.
@@ -11,6 +15,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
   reviewFormRating.addEventListener('change', validateRating);
   reviewFormRating.addEventListener('keyup', validateRating);
   btnSubmitReview.addEventListener('click', addReview);
+
+  window.addEventListener('online', isOnline);
+  window.addEventListener('offline', isOffline);
 });
 
 /**
@@ -202,20 +209,71 @@ const validateRating = (event) => {
 /**
  * Add review entered by user.
  */
-const addReview = () => {
-  const name = document.querySelector('.review-form-name');
-  const rating = document.querySelector('.review-form-rating');
-  const comments = document.querySelector('.review-form-comments');
+const addReview = (event) => {
+  const nameField = document.querySelector('.review-form-name');
+  const ratingField = document.querySelector('.review-form-rating');
+  const commentsField = document.querySelector('.review-form-comments');
+
+  const nameValue = nameField.value;
+  const ratingValue = ratingField.value;
+  const commentsValue = commentsField.textContent;
+
+  if (nameValue == null || nameValue == '' || ratingValue == null || ratingValue == '' || commentsValue == null || commentsValue == '') {
+    Toast.showToast('Please Fill Remaining Form Fields!');
+    return;
+  }
 
   const review = {
     "restaurant_id": self.restaurant.id,
-    "name": name.value,
-    "rating": rating.value,
-    "comments": comments.textContent
+    "name": nameValue,
+    "rating": ratingValue,
+    "comments": commentsValue,
+    "createdAt": new Date().toISOString(),
+    "updatedAt": new Date().toISOString()
   };
 
-  DBHelper.postReview(review);
+  const ul = document.getElementById('reviews-list');
+  ul.appendChild(createReviewHTML(review));
+  DBHelper.postReviewToDB(review);
+  resetReviewForm(nameField, ratingField, commentsField);
+};
 
+/**
+ * Reset review form.
+ */
+const resetReviewForm = (nameField, ratingField, commentsField) => {
+  nameField.value = '';
+  ratingField.value = '';
+  commentsField.textContent = 'Enter Comments';
+};
+
+/**
+ * Sync reviews with server.
+ */
+const syncReviewsWithServer = () => {
+  Promise.all(reviewsToBeSynced.map(review => {
+    DBHelper.postReviewToServer(review);
+  })).then(_ => {
+    Toast.showToast('Background Sync For Reviews Has Been Completed Successfully!');
+    reviewsToBeSynced.length = 0;
+  }).catch(_ => {
+    reviewsToBeSynced.length = 0;
+  });
+};
+
+/**
+ * Trigger notification when restaurant reviews page is online.
+ */
+const isOnline = (event) => {
+  Toast.showToast('Application Is Now Online, Sync Will Continue.');
+  syncReviewsWithServer();
+};
+
+/**
+ * Trigger notification when restaurant reviews page is offline.
+ */
+const isOffline = (event) => {
+  Toast.showToast('Application Is Offline, Your Data Has Been Saved For Background Sync.');
 };
 
 /**

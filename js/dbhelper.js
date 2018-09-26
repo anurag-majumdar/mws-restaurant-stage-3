@@ -3,13 +3,43 @@
  */
 import idb from 'idb';
 
-class DBHelper {
+export let reviewsToBeSynced = [];
+export let restaurantsToBeSynced = [];
+
+/**
+ * Generic toast message
+ */
+export class Toast {
+  static showToast(message) {
+    const toast = document.querySelector('section.toast');
+
+    toast.textContent = message;
+    Toast.makeToastVisible(toast);
+
+    setTimeout(() => {
+      Toast.makeToastHidden(toast);
+    }, 5000);
+  }
+
+  static makeToastVisible(toast) {
+    toast.classList.add('show');
+    toast.classList.remove('hide');
+  }
+
+  static makeToastHidden(toast) {
+    toast.classList.remove('show');
+    toast.classList.add('hide');
+  }
+
+}
+
+export class DBHelper {
 
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
-  static get DATABASE_URL() {
+  static get RESTAURANTS_URL() {
     const port = 1337 // Change this to your server port
     return `http://localhost:${port}/restaurants`;
   }
@@ -18,7 +48,7 @@ class DBHelper {
    * Initialize restaurant-db database in IndexedDB
    */
   static idbInit() {
-    return idb.open('restaurant-db', 1, function (upgradeDb) {
+    return idb.open('restaurant-db', 2, function (upgradeDb) {
       switch (upgradeDb.oldVersion) {
         case 0:
           upgradeDb.createObjectStore('restaurants');
@@ -32,7 +62,7 @@ class DBHelper {
    * Fetch restaurants from restaurant-list.
    */
   static getRestaurantsFromDb(dbPromise) {
-    return dbPromise.then(function (db) {
+    return dbPromise.then((db) => {
       if (!db) return;
       let tx = db.transaction('restaurants');
       let restaurantsStore = tx.objectStore('restaurants');
@@ -43,8 +73,8 @@ class DBHelper {
   /**
    * Update restaurants to restaurant-list.
    */
-  static updateRestaurantsInDb(restaurants, dbPromise) {
-    return dbPromise.then(function (db) {
+  static updateRestaurantsToDB(dbPromise, restaurants) {
+    return dbPromise.then((db) => {
       if (!db) return;
       let tx = db.transaction('restaurants', 'readwrite');
       let restaurantsStore = tx.objectStore('restaurants');
@@ -54,44 +84,62 @@ class DBHelper {
   }
 
   /**
-   * Fetch all restaurants.
+   * Fetch all restaurants using cache first or network first strategies with fallback.
    */
   static fetchRestaurants(callback) {
     const dbPromise = DBHelper.idbInit();
 
-    DBHelper.getRestaurantsFromDb(dbPromise)
-      .then((restaurants) => {
-        if (restaurants && restaurants.length > 0) {
-          // Fetched restaurants from restaurant-list
+    // Network then cache strategy - restaurants.
+    if (navigator.onLine) {
+      fetch(DBHelper.RESTAURANTS_URL)
+        .then(response => response.json())
+        .then(restaurants => {
+          if (!restaurants || (restaurants && restaurants.length === 0)) throw new Error('Restaurants not found');
+          DBHelper.updateRestaurantsToDB(dbPromise, restaurants);
           callback(null, restaurants);
-        } else {
-          return fetch(DBHelper.DATABASE_URL);
-        }
-      }).then(response => {
-        // Got a success response
-        if (!response) return;
-        return response.json();
-      }).then(restaurants => {
-        // Got the restaurants successfully! Fingers crossed!
-        if (!restaurants) return;
-        DBHelper.updateRestaurantsInDb(restaurants, dbPromise);
-        callback(null, restaurants);
-      }).catch((error) => {
-        // Oops!. Got an error from server or some error while operations!
-        const errorMessage = (`Request failed. Error message: ${error}`);
-        callback(errorMessage, null);
-      });
+        }).catch(_ => {
+          DBHelper.getRestaurantsFromDb(dbPromise)
+            .then((restaurants) => {
+              if (restaurants && restaurants.length > 0) {
+                callback(null, restaurants);
+              }
+            });
+        });
+    } else {
+      // Cache then network strategy - restaurants.
+      DBHelper.getRestaurantsFromDb(dbPromise)
+        .then((restaurants) => {
+          if (restaurants && restaurants.length > 0) {
+            callback(null, restaurants);
+          } else {
+            fetch(DBHelper.RESTAURANTS_URL)
+              .then(response => {
+                if (!response) throw new Error('No server response!');
+                return response.json();
+              }).then(restaurants => {
+                if (!restaurants) return;
+                DBHelper.updateRestaurantsToDB(dbPromise, restaurants);
+                callback(null, restaurants);
+              });
+          }
+        }).catch((error) => {
+          // Oops!. Got an error from server or some error while operations!
+          const errorMessage = (`Request failed. Error message: ${error}`);
+          callback(errorMessage, null);
+        });
+    }
+
   }
 
   /**
-   * Fetch reviews from reviews db.
+   * Fetch reviews by restaurant ID using cache first or network first strategies with fallback.
    */
   static getReviewsByRestaurantFromDb(dbPromise, restaurantId) {
-    return dbPromise.then(function (db) {
+    return dbPromise.then((db) => {
       if (!db) return;
       let tx = db.transaction('reviews');
-      let restaurantsStore = tx.objectStore('reviews');
-      return restaurantsStore.get(restaurantId);
+      let reviewsStore = tx.objectStore('reviews');
+      return reviewsStore.get(restaurantId);
     });
   }
 
@@ -99,11 +147,11 @@ class DBHelper {
    * Update reviews to reviews db.
    */
   static updateReviewsByRestaurantInDb(dbPromise, restaurantId, reviews) {
-    return dbPromise.then(function (db) {
+    return dbPromise.then((db) => {
       if (!db) return;
       let tx = db.transaction('reviews', 'readwrite');
-      let restaurantsStore = tx.objectStore('reviews');
-      restaurantsStore.put(reviews, restaurantId);
+      let reviewsStore = tx.objectStore('reviews');
+      reviewsStore.put(reviews, restaurantId);
       tx.complete;
     });
   }
@@ -112,16 +160,128 @@ class DBHelper {
    * Fetch all reviews of a particular restaurant.
    */
   static fetchRestaurantReviewsById(restaurantId) {
-    const url = `http://localhost:1337/reviews/?restaurant_id=${restaurantId}`;
-    return fetch(url)
-      .then(response => response.json())
-      .catch(error => {
-        console.log(`Some error occurred while fetching restaurant reviews by ID: ${error}`);
+    const reviewsUrl = `http://localhost:1337/reviews/?restaurant_id=${restaurantId}`;
+    const dbPromise = DBHelper.idbInit();
+
+    // Network then cache strategy - reviews.
+    if (navigator.onLine) {
+      return fetch(reviewsUrl)
+        .then(response => response.json())
+        .then(reviews => {
+          if (!reviews || (reviews && reviews.length === 0)) throw new Error('Reviews not found');
+          DBHelper.updateReviewsByRestaurantInDb(dbPromise, restaurantId, reviews);
+          return reviews;
+        }).catch(_ => {
+          return DBHelper.getReviewsByRestaurantFromDb(dbPromise, restaurantId)
+            .then(reviews => {
+              if (reviews && reviews.length > 0) {
+                // Fetched reviews from reviews IDB.
+                return reviews;
+              };
+            });
+        });
+    } else {
+      // Cache then network strategy - reviews.
+      return DBHelper.getReviewsByRestaurantFromDb(dbPromise, restaurantId)
+        .then(reviews => {
+          if (reviews && reviews.length > 0) {
+            // Fetched reviews from reviews IDB.
+            return reviews;
+          } else {
+            // Fetch reviews from network.
+            return fetch(reviewsUrl)
+              .then(response => response.json())
+              .then(reviews => {
+                if (!reviews || (reviews && reviews.length === 0)) return;
+                DBHelper.updateReviewsByRestaurantInDb(dbPromise, restaurantId, reviews);
+                return reviews;
+              });
+          }
+        }).catch((error) => {
+          // Oops!. Got an error from server or some error while operations!
+          console.log(`Request failed with error: ${error}`);
+        });
+    }
+
+  }
+
+  /**
+   * Update IndexedDB with latest restaurant favorite before going online.
+   */
+  static updateFavoriteToDB(restaurant) {
+    const dbPromise = DBHelper.idbInit();
+
+    DBHelper.getRestaurantsFromDb(dbPromise)
+      .then(restaurants => {
+        if (!restaurants || (restaurants && restaurants.length === 0)) return;
+        const updatedRestaurants = restaurants.map(restaurantFromDB => {
+          if (restaurantFromDB.id == restaurant.restaurantId) {
+            restaurantFromDB.is_favorite = restaurant.isFavorite;
+          }
+          return restaurantFromDB;
+        });
+        DBHelper.updateRestaurantsToDB(dbPromise, updatedRestaurants);
+
+        if (navigator.onLine) {
+          DBHelper.updateFavoriteToServer(restaurant);
+        } else {
+          restaurantsToBeSynced.push(restaurant);
+        }
       });
   }
 
-  static postReview(review) {
+  /**
+   * Update server with latest favorite.
+   */
+  static updateFavoriteToServer(restaurant) {
+    const updateFavoriteUrl = `http://localhost:1337/restaurants/${restaurant.restaurantId}/?is_favorite=${restaurant.isFavorite}`;
 
+    return fetch(updateFavoriteUrl, {
+      method: 'PUT'
+    });
+  }
+
+  /**
+   * Update IndexedDB with latest review before going online.
+   */
+  static postReviewToDB(review) {
+    const dbPromise = DBHelper.idbInit();
+
+    DBHelper.getReviewsByRestaurantFromDb(dbPromise, review.restaurant_id)
+      .then(reviews => {
+        if (!reviews) return;
+        reviews.push(review);
+        DBHelper.updateReviewsByRestaurantInDb(dbPromise, review.restaurant_id, reviews);
+
+        if (navigator.onLine) {
+          DBHelper.postReviewToServer(review);
+        } else {
+          reviewsToBeSynced.push(review);
+        }
+
+      });
+  }
+
+  /**
+   * Update server with latest review.
+   */
+  static postReviewToServer(review) {
+    const postReviewsUrl = `http://localhost:1337/reviews`;
+
+    const postReview = {
+      "restaurant_id": review.restaurant_id,
+      "name": review.name,
+      "rating": review.rating,
+      "comments": review.comments
+    };
+
+    return fetch(postReviewsUrl, {
+      method: 'POST',
+      body: JSON.stringify(postReview),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
 
   /**
@@ -264,4 +424,4 @@ class DBHelper {
   }
 }
 
-export default DBHelper;
+// export default DBHelper;

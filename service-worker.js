@@ -21,6 +21,7 @@ self.addEventListener('install', (event) => {
     .then((cache) => {
       cache.addAll([
         '/',
+        'manifest.json',
         ...cssFiles,
         ...jsFiles
       ]);
@@ -60,8 +61,10 @@ self.addEventListener('fetch', (event) => {
             return cacheDynamicRequestData(dynamicImagesCacheName, event.request.url, fetchResponse.clone());
           } else if (event.request.url.includes('.html')) {
             return cacheDynamicRequestData(dynamicPagesCacheName, event.request.url, fetchResponse.clone());
-          } else {
+          } else if (event.request.url.includes('mapbox') || event.request.url.includes('leaflet')) {
             return cacheDynamicRequestData(dynamicMapsCacheName, event.request.url, fetchResponse.clone());
+          } else if (event.request.url.includes('reviews') || event.request.url.includes('restaurant')) {
+            return fetchResponse;
           }
         }).catch((error) => {
           console.log('Some error occurred while saving to or fetching data from dynamic cache!');
