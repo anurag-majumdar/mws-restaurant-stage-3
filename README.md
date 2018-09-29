@@ -45,6 +45,11 @@ gulp serve
 
 The application will be running at http://localhost:9000/ . For screenshots of some of the applciation features, refer the section below.
 
+## Lighthouse Audit
+
+### Audit was carried out in Chrome's incognito mode under localhost without HTTPS configuration.
+![Audit](screenshots/lighthouse-audit.png)
+
 ## Screenshots
 
 The screenshots give a brief overview of the application features.
