@@ -1,6 +1,13 @@
 # Mobile Web Specialist Certification Course (Nanodegree)
 
-## Project Stage 3
+## Motivation
+
+This project was built as a continuation of Mobile Web Specialist Nanodegree's Project stage 1 and 2 combined.
+This repository consists of end to end functionalities of all the project stages.
+
+The entire Nanodegree was carried out as a scholarship from **Google** and **Udacity** for the year 2018.
+
+## Project Stage 3 - Features
 
 ### The entire project has been built using the following features:
 
@@ -25,6 +32,18 @@
 * A generic Toast class was created from scratch alongwith css for informing users when they are online or offline. If user comes back online from offline state, the **background sync** for the specific tasks which user did are run and a toast message is shown in the app when the tasks finish syncing with the server.
 
 * The **Gulp** build tasks have been written from scratch with custom requirements kept in mind. Delete old build from dist folder, Minification, bundling, support for latest ES6 syntax including import and export, css browser compatibility, WebP image generation from JPG images, gzipping, serving cached files with max-age set to 1 year via **gulp serve**, all have been carried out to bring out the most optimal performance of the application. Use **gulp build** to build the app.
+
+## Setup & Run Guide
+
+This application uses **Gulp** as its default task runner. Run the following commands in order to launch the application.
+
+```
+npm install
+gulp build
+gulp serve
+```
+
+The application will be running at http://localhost:9000/ . For screenshots of some of the applciation features, refer the section below.
 
 ## Screenshots
 
@@ -62,15 +81,3 @@ The screenshots give a brief overview of the application features.
 
 ### Gulp Build
 ![Gulp Build](screenshots/gulp-build.png)
-
-## Setup & Run Guide
-
-This application uses **Gulp** as its default task runner. Run the following commands in order to launch the application.
-
-```
-npm install
-gulp build
-gulp serve
-```
-
-The application will be running at http://localhost:9000/ .
