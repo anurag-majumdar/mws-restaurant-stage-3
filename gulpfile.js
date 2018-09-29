@@ -34,7 +34,7 @@ gulp.task('build', gulpSequence('clean', 'scripts:prod', 'html:prod', 'styles:pr
 
 // Copy app contents to dist directory
 gulp.task('copy:prod', function () {
-    return gulp.src(['!node_modules/**', '**/*.{png,jpg}', 'service-worker.js', 'manifest.json', '!gulpfile.js'])
+    return gulp.src(['!node_modules/**', '!screenshots/**', '**/*.{png,jpg}', 'service-worker.js', 'manifest.json', '!gulpfile.js'])
         .pipe(gulp.dest('./dist'));
 });
 

@@ -6,6 +6,8 @@
 
 * The application uses **Responsive Web Design** with **Flexbox** mostly, **CSS Grid** sparingly and **Media Queries** heavily.
 
+* Responsive design is carried out keeping content in mind. Breakpoints are set according to content look as per screen starting from the smallest 300px device-width.
+
 * **Accessibility** techniques such as use of **semantic HTML**, **roles**, **ARIA** attributes, **managing focus** have been carried out throughout the application along with **skip links** for both the pages as well. Care was taken to make sure most of the interactive elements used were native HTML elements.
 
 * The 10 images in the first page are lazily loaded with the help of **Intersection Observer**.
@@ -24,6 +26,43 @@
 
 * The **Gulp** build tasks have been written from scratch with custom requirements kept in mind. Delete old build from dist folder, Minification, bundling, support for latest ES6 syntax including import and export, css browser compatibility, WebP image generation from JPG images, gzipping, serving cached files with max-age set to 1 year via **gulp serve**, all have been carried out to bring out the most optimal performance of the application. Use **gulp build** to build the app.
 
+## Screenshots
+
+The screenshots give a brief overview of the application features.
+
+### iPhone 5SE View (Restaurants)
+![iPhone 5SE View](screenshots/iPhone-view.png)
+
+### iPad View (Restaurants)
+![iPad View](screenshots/iPad-view.png)
+
+### Desktop View (Restaurants)
+![iPad View](screenshots/desktop-view.png)
+
+### iPhone 5SE View (Reviews)
+![iPhone 5SE View](screenshots/iPhone-view-2.png)
+
+### iPad View (Reviews)
+![iPad View](screenshots/iPad-view-2.png)
+
+### Desktop View (Reviews)
+![iPad View](screenshots/desktop-view-2.png)
+
+### Offline Restaurants & Favourite Feature With IndexedDB
+![Offline Favourite](screenshots/offline-favourite.png)
+
+### Offline Reviews With IndexedDB
+![Offline Reviews](screenshots/offline-reviews.png)
+
+### Background Sync Favourite Toast
+![Background Sync Favourite](screenshots/background-sync-favourite.png)
+
+### Background Sync Reviews Toast
+![Background Sync Reviews](screenshots/background-sync-reviews.png)
+
+### Gulp Build
+![Gulp Build](screenshots/gulp-build.png)
+
 ## Setup & Run Guide
 
 This application uses **Gulp** as its default task runner. Run the following commands in order to launch the application.
@@ -34,4 +73,4 @@ gulp build
 gulp serve
 ```
 
-The application will be running at http://localhost:9000/
+The application will be running at http://localhost:9000/ .
